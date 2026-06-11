@@ -1,0 +1,16 @@
+{
+    "name": "Tema Claro Giovani",
+    "dark": false,
+    "author": "Giovani",
+    "colors": {
+        "primary": "#1976D2",
+        "secondary": "#FFC107",
+        "background": "#F5F5F5",
+        "foreground": "#212121"
+    },
+    "ui": {
+        "Button.arc": 12,
+        "Component.arc": 12,
+        "TextComponent.arc": 8
+    }
+}

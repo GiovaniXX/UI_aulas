@@ -1,0 +1,145 @@
+package Módulo_5_UI_aula_36;
+
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.IntelliJTheme;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import javax.sound.sampled.*;
+
+public class DashboardComToastSonsCustom extends JFrame {
+
+    private final JTable tabela;
+    private DefaultTableModel modeloTabela;
+
+    public DashboardComToastSonsCustom() {
+        setTitle("Dashboard com Toasts e Sons Customizados");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1000, 700);
+        setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel(new MigLayout("wrap 1", "[grow,fill]", "[]10[grow]10[]"));
+
+        JLabel titulo = new JLabel("🌙 Dashboard de Tarefas - Tema Escuro");
+        titulo.setFont(titulo.getFont().deriveFont(20f));
+        panel.add(titulo, "align center");
+
+        String[] colunas = {"ID", "Título", "Descrição", "Status"};
+        modeloTabela = new DefaultTableModel(colunas, 0);
+        tabela = new JTable(modeloTabela);
+
+        JScrollPane scrollTabela = new JScrollPane(tabela);
+        panel.add(scrollTabela, "grow, push");
+
+        // Botões
+        JButton btnAdicionar = new JButton("Adicionar Tarefa");
+        JButton btnExportarPDF = new JButton("Exportar PDF");
+        JButton btnExportarExcel = new JButton("Exportar Excel");
+        JButton btnErro = new JButton("Simular Erro");
+
+        JPanel painelBotoes = new JPanel(new MigLayout("wrap 4", "[grow,fill][grow,fill][grow,fill][grow,fill]"));
+        painelBotoes.add(btnAdicionar);
+        painelBotoes.add(btnExportarPDF);
+        painelBotoes.add(btnExportarExcel);
+        painelBotoes.add(btnErro);
+
+        panel.add(painelBotoes, "growx");
+
+        add(panel);
+
+        // Exemplo inicial
+        modeloTabela.addRow(new Object[]{1, "Estudar Java", "Revisar MigLayout", "Pendente"});
+        modeloTabela.addRow(new Object[]{2, "Projeto UI", "Aplicar FlatLaf", "Em andamento"});
+        modeloTabela.addRow(new Object[]{3, "Entrega relatório", "Finalizar documento", "Concluída"});
+
+        // Ações com toast + sons diferentes
+        btnAdicionar.addActionListener(e -> {
+            modeloTabela.addRow(new Object[]{modeloTabela.getRowCount() + 1, "Nova Tarefa", "Descrição...", "Pendente"});
+            mostrarToast("✅ Nova tarefa adicionada!", TipoToast.SUCESSO);
+        });
+
+        btnExportarPDF.addActionListener(e -> mostrarToast("📄 Relatório PDF exportado com sucesso!", TipoToast.SUCESSO));
+        btnExportarExcel.addActionListener(e -> mostrarToast("📊 Relatório Excel exportado com sucesso!", TipoToast.AVISO));
+        btnErro.addActionListener(e -> mostrarToast("❌ Erro ao processar tarefa!", TipoToast.ERRO));
+    }
+
+    // Enum para tipos de toast
+    enum TipoToast {
+        SUCESSO, ERRO, AVISO
+    }
+
+    // Método para exibir toast com som customizado
+    private void mostrarToast(String mensagem, TipoToast tipo) {
+        JWindow toast = new JWindow();
+        toast.setLayout(new BorderLayout());
+
+        JLabel label = new JLabel(mensagem, SwingConstants.CENTER);
+        label.setOpaque(true);
+        label.setForeground(Color.WHITE);
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 14f));
+        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        String som = "";
+        switch (tipo) {
+            case SUCESSO -> {
+                label.setBackground(new Color(46, 125, 50, 220)); // Verde
+                som = "sounds/sucesso.wav";
+            }
+            case ERRO -> {
+                label.setBackground(new Color(198, 40, 40, 220)); // Vermelho
+                som = "sounds/erro.wav";
+            }
+            case AVISO -> {
+                label.setBackground(new Color(255, 143, 0, 220)); // Laranja
+                som = "sounds/aviso.wav";
+            }
+        }
+
+        tocarSom(som);
+
+        toast.add(label, BorderLayout.CENTER);
+        toast.pack();
+
+        // Posição no canto inferior direito
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = screenSize.width - toast.getWidth() - 20;
+        int y = screenSize.height - toast.getHeight() - 50;
+        toast.setLocation(x, y);
+
+        toast.setVisible(true);
+
+        // Fechar automaticamente após 2 segundos
+        new Timer(2000, e -> toast.dispose()).start();
+    }
+
+    // Método para tocar som .wav
+    private void tocarSom(String caminho) {
+        try {
+            File arquivo = new File(caminho);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(arquivo);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (IOException | LineUnavailableException | UnsupportedAudioFileException e) {
+            System.err.println("Erro ao tocar som: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            IntelliJTheme.setup(new FileInputStream("tema_escuro.json"));
+        } catch (IOException e) {
+            FlatDarkLaf.setup();
+            System.err.println("Falha ao carregar tema escuro personalizado: " + e.getMessage());
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            new DashboardComToastSonsCustom().setVisible(true);
+        });
+    }
+}
